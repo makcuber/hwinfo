@@ -1,0 +1,163 @@
+#!/bin/bash +e
+
+#Dev: Jonathan Brunath
+#Date Created: 5/19/02/2021
+
+#Character used for printing breakline string
+#Breakline string is a full line of the specified character
+#and adjusts length based on terminal width at time of function call
+breakLineChar="="
+
+#Default character for removing characters 
+#prior to the delimiter during string formating
+delimPre_def=":" 
+
+#Formatting function that outputs a full line of the specified character
+#and adjusts length based on terminal width at time of function call
+function breakLine {
+        i=0
+        limit=0
+        let limit=$(tput cols)-1
+        while [ $i -lt $limit ]; do
+                echo -n "$breakLineChar"
+                let i=i+1
+        done
+        echo "$breakLineChar"
+}
+
+#Format the output of hardware info strings
+function formatOutput {
+	#input processing
+	string="$1"
+	label="$2"
+	delimPost="$4"
+	
+	#If no value has been provided for delimiter used for 
+	#removing prepended characters, use default value instead
+	if [ "$3" == "" ]; then
+		delimPre=$delimPre_def
+	else
+		delimPre="$3"
+	fi
+	
+	#remove characters prepending specified delimiter
+	string=${string#*$delimPre}
+
+	#remove characters following specified delimiter
+	#If no value has been provided for postpended delimiter, skip this step
+	if [ ! "$delimPost" == "" ]; then
+		string=${string%$delimPost*}	
+	fi
+	
+	#trim whitespace
+	string=$(echo $string | xargs)
+
+	#output extracted substring value with provided label
+	#If no value has been provided for the label, skip this step
+	if [ ! "$label" == "" ]; then
+		echo -e "$label: \t\t$string"
+	else
+		echo "$string"
+	fi
+}
+
+function depCheck {
+	#array of bash tools this script is dependant on to work
+	deps=("xargs" "dmidecode" "lshw" "lscpu")
+
+	#array to store names of dependancies that fail the check
+	failedDeps=()
+
+	#loop over the array of dependancies
+	for i in ${deps[@]}; do
+		#check where the dependancy is located 
+		#(assumes the whereis command exists since it is a base Linux command)
+		string=$(formatOutput "$(whereis $i)")
+
+		#check if the result is empty, indicating a missing dependancy
+		if [ "$string" == "" ]; then
+			#add missing dependancy name to failedDeps array list
+			failedDeps+=("$i")
+		fi
+	done
+
+	#check if any missing dependancies were found
+	#continue to main function run if no issues were found, else exit with error
+	if ((${#failedDeps[@]} > 0)); then
+		echo ""
+		echo "HW Info - ERROR"
+		breakLine
+		echo ""
+		echo "ERROR: ${#failedDeps[@]} missing dependancies were detected"
+		echo ""
+		echo "Missing Dependancies:"
+		for i in ${failedDeps[@]}; do
+			echo " - $i"
+		done
+		echo ""
+		breakLine
+		echo "Please install the missing dependancies and run the script again"
+		echo ""
+	else
+		run
+	fi
+}
+
+function run {
+	#Title
+	echo ""
+	echo "HW Info"
+	breakLine
+
+	#sudo check
+	sudo echo ""
+
+	#Serial Number
+	formatOutput "$(sudo dmidecode -t system | grep Serial)" "Serial #"
+
+	echo ""
+	echo "===MOBO==="
+
+	#Motherboard Model
+	formatOutput "$(sudo dmidecode -t 2 | grep Product)" "Mobo Model"
+
+	#Motherboard Version
+	formatOutput "$(sudo dmidecode -t 2 | grep Version)" "Mobo Version"
+
+	echo ""
+	echo "===CPU==="
+
+	#CPU Manufacturer
+	formatOutput "$(sudo dmidecode -t 2 | grep Manufacturer)" "CPU Model"
+
+	#CPU Model
+	formatOutput "$(lscpu | grep 'Model name')" "CPU Model"
+
+	#CPU Cores
+	formatOutput "$(lscpu | grep '^CPU(s):')" "CPU Cores"
+
+	#CPU L3 Cache
+	formatOutput "$(lscpu | grep 'L3 cache')" "L3 Cache"
+
+	#CPU min speed
+	formatOutput "$(lscpu | grep 'CPU min MHz')" "CPU Min (MHz)" ":" "."
+
+	#CPU boost speed
+	formatOutput "$(lscpu | grep 'CPU max MHz')" "CPU Max (MHz)" ":" "."
+
+	echo ""
+	echo "===GPU==="
+
+	#GPU Vendor
+	formatOutput "$(sudo lshw -C display | grep vendor)" "GPU Vendor"
+
+	#GPU Model
+	formatOutput "$(sudo lshw -C display | grep product)" "GPU Model"
+
+	#GPU vRAM
+	formatOutput "$(sudo lshw -C display | grep resources)" "Min vRAM (MB)" "=" ")"
+
+	echo ""
+}
+
+depCheck
