@@ -158,6 +158,23 @@ function run {
 	formatOutput "$(sudo lshw -C display | grep resources)" "Min vRAM (MB)" "=" ")"
 
 	echo ""
+	echo "===RAM==="
+
+	#Total RAM
+	formatOutput "$(sudo lshw -short -C memory | grep 'System Memory')" "Total RAM" "memory" "System"
+	delim="$(sudo lshw -short -C memory | grep 'System Memory')";
+	delim=${delim%memory*};
+	delim="$(echo $delim |  xargs)"
+	
+	string=$(sudo lshw -short -C memory | grep "$delim/")
+	IFS=$'\n'
+	k=0
+	for i in $string; do
+		formatOutput "$i" "RAM Slot $k" "memory"
+		k=$(expr $k + 1)
+	done
+	IFS=$' '
+	echo ""
 }
 
 depCheck
