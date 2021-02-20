@@ -99,11 +99,11 @@ function depCheck {
 		echo "Please install the missing dependancies and run the script again"
 		echo ""
 	else
-		run
+		run $@
 	fi
 }
 
-function run {
+function getMainInfo {
 	#Title
 	echo ""
 	echo "HW Info"
@@ -114,7 +114,8 @@ function run {
 
 	#Serial Number
 	formatOutput "$(sudo dmidecode -t system | grep Serial)" "Serial #"
-
+}
+function getMOBOinfo {
 	echo ""
 	echo "===MOBO==="
 
@@ -123,7 +124,8 @@ function run {
 
 	#Motherboard Version
 	formatOutput "$(sudo dmidecode -t 2 | grep Version)" "Mobo Version"
-
+}
+function getCPUinfo {
 	echo ""
 	echo "===CPU==="
 
@@ -144,7 +146,8 @@ function run {
 
 	#CPU boost speed
 	formatOutput "$(lscpu | grep 'CPU max MHz')" "CPU Max (MHz)" ":" "."
-
+}
+function getGPUinfo {
 	echo ""
 	echo "===GPU==="
 
@@ -156,7 +159,8 @@ function run {
 
 	#GPU vRAM
 	formatOutput "$(sudo lshw -C display | grep resources)" "Min vRAM (MB)" "=" ")"
-
+}
+function getRAMinfo {
 	echo ""
 	echo "===RAM==="
 
@@ -176,5 +180,29 @@ function run {
 	IFS=$' '
 	echo ""
 }
+function run {
+	getMainInfo
+	
+	case "$1" in
+		-mobo)
+			getMOBOinfo		
+			;;
+		-cpu)
+			getCPUinfo		
+			;;
+		-gpu)
+			getGPUinfo		
+			;;
+		-ram)
+			getRAMinfo		
+			;;
+		*)
+			getMOBOinfo
+			getCPUinfo
+			getGPUinfo
+			getRAMinfo
+			;;
+	esac
+}
 
-depCheck
+depCheck $@
