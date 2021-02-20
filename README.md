@@ -25,15 +25,15 @@ Mobo Model: 		  Pear-DS65F4S65SD5F46
 Mobo Version: 		PearBookLite7,2
 
 ===CPU===
-CPU Model: 		    Pear Inc.
-CPU Model: 		    Intel(R) Core(TM) i2-7411U CPU @ 0.80GHz
-CPU Cores: 		    1
+CPU Model: 		   Pear Inc.
+CPU Model: 		   Intel(R) Core(TM) i2-7411U CPU @ 0.80GHz
+CPU Cores: 		   1
 L3 Cache: 		    3 MiB
-CPU Min (MHz): 		800
-CPU Max (MHz): 		2800
+CPU Min (MHz): 	800
+CPU Max (MHz): 	2800
 
 ===GPU===
 GPU Vendor: 		  Intel Corporation
-GPU Model: 		    2rd Gen Core processor Graphics Controller
-Min vRAM (MB): 		64
+GPU Model: 		   2rd Gen Core processor Graphics Controller
+Min vRAM (MB): 	64
 </pre>
